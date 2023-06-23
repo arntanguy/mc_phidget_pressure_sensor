@@ -37,6 +37,7 @@ set(plugin_HDR
 
 # The add_plugin macro is provided by mc_rtc
 add_plugin(PhidgetPressureSensorPlugin "${plugin_SRC}" "${plugin_HDR}")
+set(AUTOLOAD_PhidgetPressureSensorPlugin_PLUGIN CACHE INTERNAL OFF)
 target_link_libraries(PhidgetPressureSensorPlugin PUBLIC PhidgetPressureSensorDAQ)
 
 if(BUILD_TESTING)
