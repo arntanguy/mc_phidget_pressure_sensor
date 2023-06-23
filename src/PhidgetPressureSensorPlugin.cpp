@@ -73,8 +73,6 @@ void PhidgetPressureSensorPlugin::before(mc_control::MCGlobalController & contro
   static unsigned int iter = 0;
   for(auto & [hubName, hubSensors] : hubs_)
   {
-    /* if(++iter % 10 == 0) */
-    /* { */
     hubSensors.readSensorData();
 
     if(!init_)
@@ -108,11 +106,6 @@ void PhidgetPressureSensorPlugin::before(mc_control::MCGlobalController & contro
       }
       init_ = true;
     }
-    for(auto & [name, data] : hubSensors.getLatestSensorData())
-    {
-      mc_rtc::log::info("{} = {}", name, data.pressure);
-    }
-    /* } */
   }
 }
 
