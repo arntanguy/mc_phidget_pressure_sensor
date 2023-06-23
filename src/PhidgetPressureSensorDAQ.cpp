@@ -1,0 +1,44 @@
+#include "PhidgetPressureSensorDAQ.h"
+#include <mc_rtc/logging.h>
+#include <chrono>
+#include <phidget22.h>
+
+namespace pps
+{
+PhidgetPressureSensorDAQ::PhidgetPressureSensorDAQ(const std::map<std::string, unsigned int> & sensors,
+                                                   unsigned int hubSerialNumber,
+                                                   double frequency)
+: hubSerialNumber_(hubSerialNumber), freq_(frequency)
+{
+
+  for(const auto & [name, port] : sensors)
+  {
+    sensors_.try_emplace(name, name, hubSerialNumber_, port);
+  }
+
+  th_ = std::thread(
+      [this]
+      {
+        double dt = 1 / freq_;
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::duration<double>(dt));
+        for(auto & [name, sensor] : sensors_)
+        {
+          sensor.init();
+        }
+        while(reading_)
+        {
+          std::lock_guard<std::mutex> lock(readMutex_);
+          for(auto & [name, sensor] : sensors_)
+          {
+            /* mc_rtc::log::info("Reading {}", name); */
+            sensor.read();
+          }
+          std::this_thread::sleep_for(duration);
+        }
+        for(auto & [name, sensor] : sensors_)
+        {
+          sensor.close();
+        }
+      });
+}
+} // namespace pps

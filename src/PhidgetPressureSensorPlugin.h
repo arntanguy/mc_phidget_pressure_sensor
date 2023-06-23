@@ -5,11 +5,12 @@
 #pragma once
 
 #include <mc_control/GlobalPlugin.h>
+#include <PhidgetPressureSensorDAQ.h>
 
 namespace mc_plugin
 {
 
-struct NewPlugin : public mc_control::GlobalPlugin
+struct PhidgetPressureSensorPlugin : public mc_control::GlobalPlugin
 {
   void init(mc_control::MCGlobalController & controller, const mc_rtc::Configuration & config) override;
 
@@ -21,9 +22,12 @@ struct NewPlugin : public mc_control::GlobalPlugin
 
   mc_control::GlobalPlugin::GlobalPluginConfiguration configuration() override;
 
-  ~NewPlugin() override;
+  ~PhidgetPressureSensorPlugin() override;
 
 private:
+  std::map<std::string, pps::PhidgetPressureSensorDAQ> hubs_;
+  double t_ = 0;
+  bool init_ = false;
 };
 
 } // namespace mc_plugin
