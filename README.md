@@ -24,6 +24,11 @@ git mv etc/PhidgetPressureSensorPlugin.in.yaml etc/PhidgetPressureSensorPlugin.i
 
 3. Build and install the project
 
+4. Add the following udev rule to allow running as non-root: edit `/etc/udev/rules.d/51-usb-device.rules`
+  ```sh
+  SUBSYSTEM=="usb", MODE="0660", GROUP="plugdev"
+  ```
+
 4. Run using your [mc_rtc] interface of choice, add `PhidgetPressureSensorPlugin` to the `Plugins` configuration entry or enable the autoload option
 
 [mc_rtc]: https://jrl-umi3218.github.io/mc_rtc/

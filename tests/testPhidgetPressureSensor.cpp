@@ -7,7 +7,7 @@ int main(int argc, char * argv[])
 
   PhidgetPressureSensorDAQ daq{{
                                    {"Sensor0", 0},
-                                   /* {"Sensor1", 5} */
+                                   {"Sensor1", 3},
                                },
                                pps::DEFAULT_HUB_SERIAL_NUMBER,
                                pps::DEFAULT_FREQUENCY};

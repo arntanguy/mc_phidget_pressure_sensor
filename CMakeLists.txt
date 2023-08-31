@@ -3,9 +3,6 @@ cmake_minimum_required(VERSION 3.1)
 project(PhidgetPressureSensorPlugin LANGUAGES CXX VERSION 1.0.0)
 set(CMAKE_CXX_VERSION 17)
 
-#include(CTest)
-#enable_testing()
-
 # Find mc_rtc if we are not building inside mc_rtc itself
 if(NOT TARGET mc_rtc::mc_control)
   find_package(mc_rtc REQUIRED)

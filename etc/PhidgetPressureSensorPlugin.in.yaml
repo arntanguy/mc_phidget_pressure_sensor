@@ -6,5 +6,5 @@ hubs:
     sensors:
       Sensor0:
         port: 0
-      # Sensor1:
-      #   port: 5
+      Sensor1:
+        port: 3
