@@ -5,7 +5,9 @@
 #pragma once
 
 #include <mc_control/GlobalPlugin.h>
+#include <mc_rtc/logging.h>
 #include <PhidgetPressureSensorDAQ.h>
+#include <utility>
 
 namespace mc_plugin
 {
@@ -24,10 +26,26 @@ struct PhidgetPressureSensorPlugin : public mc_control::GlobalPlugin
 
   ~PhidgetPressureSensorPlugin() override;
 
+  template<typename... Args>
+  bool warn_or_throw(Args &&... args)
+  {
+    if(required_)
+    {
+      mc_rtc::log::error_and_throw(std::forward<Args>(args)...);
+      return true;
+    }
+    else
+    {
+      mc_rtc::log::warning(std::forward<Args>(args)...);
+      return false;
+    }
+  }
+
 private:
   std::map<std::string, pps::PhidgetPressureSensorDAQ> hubs_;
   double t_ = 0;
   bool init_ = false;
+  bool required_ = true;
 };
 
 } // namespace mc_plugin

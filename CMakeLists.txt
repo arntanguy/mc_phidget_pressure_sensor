@@ -9,8 +9,7 @@ if(NOT TARGET mc_rtc::mc_control)
 endif()
 
 # Configure and install the plugin configuration
-configure_file(etc/PhidgetPressureSensorPlugin.in.yaml "${CMAKE_CURRENT_BINARY_DIR}/etc/PhidgetPressureSensorPlugin.yaml")
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/etc/PhidgetPressureSensorPlugin.yaml" DESTINATION "${MC_PLUGINS_RUNTIME_INSTALL_PREFIX}/etc")
+install(FILES etc/PhidgetPressureSensorPlugin.yaml DESTINATION "${MC_PLUGINS_RUNTIME_INSTALL_PREFIX}/etc")
 
 # TODO export this library
 add_library(PhidgetPressureSensorDAQ SHARED src/PhidgetPressureSensorDAQ.cpp src/PhidgetPressureSensorDAQ.h)

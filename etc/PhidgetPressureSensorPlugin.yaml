@@ -1,1 +1,13 @@
 ---
+# Sample configuration for the PhidgetPressureSensor plugin
+#
+# required: false # Whether the plugin is required
+# hubs:
+#   BracePhidget:
+#     serial_number: 683870
+#     frequency: 100
+#     sensors:
+#       Sensor0:
+#         port: 0
+#       Sensor1:
+#         port: 3

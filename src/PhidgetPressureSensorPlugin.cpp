@@ -16,10 +16,12 @@ void PhidgetPressureSensorPlugin::init(mc_control::MCGlobalController & controll
 {
   mc_rtc::log::info("PhidgetPressureSensorPlugin::init called with configuration:\n{}", config.dump(true, true));
 
+  config("required", required_);
+
   std::map<std::string, mc_rtc::Configuration> hubs = config("hubs", mc_rtc::Configuration{});
   if(hubs.empty())
   {
-    mc_rtc::log::warning("[PhidgetPressureSensorPlugin] No sensor configuration provided");
+    warn_or_throw("[PhidgetPressureSensorPlugin] No sensor configuration provided");
   }
   for(const auto & [hubName, hubConfig] : hubs)
   {
@@ -27,14 +29,14 @@ void PhidgetPressureSensorPlugin::init(mc_control::MCGlobalController & controll
     std::map<std::string, unsigned int> sensors;
     if(!hubConfig.has("serial_number"))
     {
-      mc_rtc::log::warning("[PhidgetPressureSensorPlugin] No serial_number provided for hub {}, skipping.", hubName);
+      warn_or_throw("[PhidgetPressureSensorPlugin] No serial_number provided for hub {}", hubName);
       continue;
     }
     auto hubSerialNumber = hubConfig("serial_number");
     auto hubFrequency = hubConfig("frequency", pps::DEFAULT_FREQUENCY);
     if(sensorsConfig.empty())
     {
-      mc_rtc::log::warning("[PhidgetPressureSensorPlugin] No sensors in configuration for hub {}", hubName);
+      warn_or_throw("[PhidgetPressureSensorPlugin] No sensors in configuration for hub {}", hubName);
     }
     else
     {
@@ -42,8 +44,7 @@ void PhidgetPressureSensorPlugin::init(mc_control::MCGlobalController & controll
       {
         if(!sensorConfig.has("port"))
         {
-          mc_rtc::log::error("[PhidgetPressureSensorPlugin] Sensor {} on hub {} has no port specified in its "
-                             "configuration, skipping.");
+          warn_or_throw("[PhidgetPressureSensorPlugin] Sensor {} on hub {} has no port specified in its configuration");
         }
         else
         {
@@ -54,7 +55,7 @@ void PhidgetPressureSensorPlugin::init(mc_control::MCGlobalController & controll
     }
     if(sensors.empty())
     {
-      mc_rtc::log::warning("[PhidgetPressureSensorPlugin] No sensor provided for hub {}", hubName);
+      warn_or_throw("[PhidgetPressureSensorPlugin] No sensor provided for hub {}", hubName);
     }
     else
     {
@@ -85,7 +86,6 @@ void PhidgetPressureSensorPlugin::before(mc_control::MCGlobalController & contro
           auto & sensorName = sensorData.first;
           auto & data = sensorData.second;
           std::string pressureName = fmt::format("PhidgetPressureSensor_{}_{}_pressure", hubName, sensorName).c_str();
-          mc_rtc::log::critical("Adding log");
           ctl.logger().addLogEntry(pressureName, this, [&data]() { return data.pressure; });
           ctl.logger().addLogEntry(fmt::format("PhidgetPressureSensor_{}_{}_current", hubName, sensorName).c_str(),
                                    this, [&data]() { return data.current; });
