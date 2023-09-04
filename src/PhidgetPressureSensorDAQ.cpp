@@ -5,15 +5,29 @@
 
 namespace pps
 {
+
+template<typename ContainerT, class FwdIt, class Pr>
+void erase_if(ContainerT & items, FwdIt it, FwdIt Last, Pr Pred)
+{
+  for(; it != Last;)
+  {
+    if(Pred(*it))
+      it = items.erase(it);
+    else
+      ++it;
+  }
+}
+
 PhidgetPressureSensorDAQ::PhidgetPressureSensorDAQ(const std::map<std::string, unsigned int> & sensors,
                                                    unsigned int hubSerialNumber,
-                                                   double frequency)
+                                                   double frequency,
+                                                   bool required)
 : hubSerialNumber_(hubSerialNumber), freq_(frequency)
 {
 
   for(const auto & [name, port] : sensors)
   {
-    sensors_.try_emplace(name, name, hubSerialNumber_, port);
+    sensors_.try_emplace(name, name, hubSerialNumber_, port, required);
   }
 
   th_ = std::thread(
@@ -21,10 +35,9 @@ PhidgetPressureSensorDAQ::PhidgetPressureSensorDAQ(const std::map<std::string, u
       {
         double dt = 1 / freq_;
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::duration<double>(dt));
-        for(auto & [name, sensor] : sensors_)
-        {
-          sensor.init();
-        }
+        // Try to initialize sensor.
+        // If it fails to initialize, remove it such that no subsequent reads will be attempted
+        erase_if(sensors_, sensors_.begin(), sensors_.end(), [](auto & s) { return !s.second.init(); });
         while(reading_)
         {
           std::lock_guard<std::mutex> lock(readMutex_);

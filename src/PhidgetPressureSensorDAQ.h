@@ -13,17 +13,6 @@ namespace pps
 
 constexpr unsigned int DEFAULT_HUB_SERIAL_NUMBER = 683870;
 constexpr unsigned int DEFAULT_FREQUENCY = 100;
-
-template<typename T, typename... Args>
-void safecall(std::string && name, T fun, Args &&... args)
-{
-  auto res = fun(args...);
-  if(res != EPHIDGET_OK)
-  {
-    mc_rtc::log::error_and_throw("[PhidgetPressureSensor] Error in Phidget API call to function {}", name);
-  }
-}
-
 #define SAFECALL(x, ...) safecall(#x, x, __VA_ARGS__)
 
 struct PhidgetPressureSensorData
@@ -34,8 +23,11 @@ struct PhidgetPressureSensorData
 
 struct PhidgetPressureSensor
 {
-  PhidgetPressureSensor(const std::string name, unsigned int hubSerialNumber, unsigned int portNumber)
-  : name_(name), hubSerialNumber_(hubSerialNumber), portNumber_(portNumber)
+  PhidgetPressureSensor(const std::string name,
+                        unsigned int hubSerialNumber,
+                        unsigned int portNumber,
+                        bool required = true)
+  : name_(name), hubSerialNumber_(hubSerialNumber), portNumber_(portNumber), required_(required)
   {
   }
 
@@ -44,25 +36,48 @@ struct PhidgetPressureSensor
     close();
   }
 
-  void init()
+  template<typename T, typename... Args>
+  bool safecall(std::string && name, T fun, Args &&... args)
+  {
+    ;
+    if(fun(args...) != EPHIDGET_OK)
+    {
+      if(required_)
+      {
+        mc_rtc::log::error_and_throw("[PhidgetPressureSensor] Error in Phidget API call to function {}", name);
+      }
+      else
+      {
+        mc_rtc::log::warning("[PhidgetPressureSensor] Error in Phidget API call to function {}", name);
+      }
+      return false;
+    }
+    return true;
+  }
+
+  bool init()
   {
     mc_rtc::log::info("Init with hub serial {} and port {}", hubSerialNumber_, portNumber_);
-    SAFECALL(PhidgetCurrentInput_create, &sensor);
-    SAFECALL(Phidget_setDeviceSerialNumber, (PhidgetHandle)sensor, hubSerialNumber_);
-    SAFECALL(Phidget_setHubPort, (PhidgetHandle)sensor, portNumber_);
-    SAFECALL(Phidget_openWaitForAttachment, (PhidgetHandle)sensor, 1000);
+    return SAFECALL(PhidgetCurrentInput_create, &sensor)
+           && SAFECALL(Phidget_setDeviceSerialNumber, (PhidgetHandle)sensor, hubSerialNumber_)
+           && SAFECALL(Phidget_setHubPort, (PhidgetHandle)sensor, portNumber_)
+           && SAFECALL(Phidget_openWaitForAttachment, (PhidgetHandle)sensor, 1000);
   }
 
-  void close()
+  bool close()
   {
-    SAFECALL(Phidget_close, (PhidgetHandle)sensor);
-    SAFECALL(PhidgetCurrentInput_delete, &sensor);
+    bool success = true;
+    return SAFECALL(Phidget_close, (PhidgetHandle)sensor) && SAFECALL(PhidgetCurrentInput_delete, &sensor);
   }
 
-  void read()
+  bool read()
   {
-    SAFECALL(PhidgetCurrentInput_getCurrent, sensor, &data_.current);
-    data_.pressure = (data_.current - 0.004) * (10.0 / 0.016);
+    bool success = SAFECALL(PhidgetCurrentInput_getCurrent, sensor, &data_.current);
+    if(success)
+    {
+      data_.pressure = (data_.current - 0.004) * (10.0 / 0.016);
+    }
+    return success;
   }
 
   inline PhidgetPressureSensorData data() const noexcept
@@ -76,6 +91,7 @@ struct PhidgetPressureSensor
   }
 
 protected:
+  bool required_ = true;
   std::string name_;
   unsigned int hubSerialNumber_ = 0;
   unsigned int portNumber_ = 0;
@@ -87,7 +103,8 @@ struct PhidgetPressureSensorDAQ
 {
   PhidgetPressureSensorDAQ(const std::map<std::string, unsigned int> & sensors,
                            unsigned int hubSerialNumber = DEFAULT_HUB_SERIAL_NUMBER,
-                           double frequency = DEFAULT_FREQUENCY);
+                           double frequency = DEFAULT_FREQUENCY,
+                           bool required = true);
 
   ~PhidgetPressureSensorDAQ()
   {
@@ -109,6 +126,7 @@ struct PhidgetPressureSensorDAQ
   }
 
 protected:
+  bool required_ = true;
   int hubSerialNumber_ = 0;
   double freq_ = DEFAULT_FREQUENCY;
   std::map<std::string, PhidgetPressureSensor> sensors_;

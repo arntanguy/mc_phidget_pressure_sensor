@@ -59,7 +59,7 @@ void PhidgetPressureSensorPlugin::init(mc_control::MCGlobalController & controll
     }
     else
     {
-      hubs_.try_emplace(hubName, sensors, hubSerialNumber, hubFrequency);
+      hubs_.try_emplace(hubName, sensors, hubSerialNumber, hubFrequency, required_);
     }
   }
 }
