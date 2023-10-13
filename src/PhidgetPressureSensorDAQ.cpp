@@ -56,13 +56,7 @@ PhidgetPressureSensorDAQ::PhidgetPressureSensorDAQ(const std::map<std::string, u
           duration_ms ellapsed = end_t - start_t;
           if(ellapsed.count() < dt * 1000)
           {
-            mc_rtc::log::info("Sleeping for: {}", dt * 1000 - ellapsed.count());
             std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(dt * 1000 - ellapsed.count()));
-          }
-          else
-          {
-                        mc_rtc::log::info("Too slow, not sleeping");
-
           }
         }
         for(auto & [name, sensor] : sensors_)
