@@ -113,10 +113,14 @@ struct PhidgetPressureSensorDAQ
 
   void readSensorData()
   {
-    std::lock_guard<std::mutex> lock(readMutex_);
-    for(auto & [name, sensor] : sensors_)
+    if(newData_)
     {
-      latestData_[name] = sensor.data();
+      std::lock_guard<std::mutex> lock(readMutex_);
+      for(auto & [name, sensor] : sensors_)
+      {
+        latestData_[name] = sensor.data();
+      }
+      newData_ = false;
     }
   }
 
@@ -134,6 +138,7 @@ protected:
   mutable std::mutex readMutex_;
   std::atomic<bool> reading_{true};
   std::map<std::string, PhidgetPressureSensorData> latestData_;
+  std::atomic<bool> newData_{false};
 };
 
 } // namespace pps

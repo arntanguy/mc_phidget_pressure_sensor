@@ -2,6 +2,7 @@
 #include <mc_rtc/logging.h>
 #include <chrono>
 #include <phidget22.h>
+#include <mc_rtc/clock.h>
 
 namespace pps
 {
@@ -40,18 +41,48 @@ PhidgetPressureSensorDAQ::PhidgetPressureSensorDAQ(const std::map<std::string, u
         erase_if(sensors_, sensors_.begin(), sensors_.end(), [](auto & s) { return !s.second.init(); });
         while(reading_)
         {
-          std::lock_guard<std::mutex> lock(readMutex_);
-          for(auto & [name, sensor] : sensors_)
+          auto start_t = mc_rtc::clock::now();
           {
-            /* mc_rtc::log::info("Reading {}", name); */
-            sensor.read();
+            std::lock_guard<std::mutex> lock(readMutex_);
+            for(auto & [name, sensor] : sensors_)
+            {
+              /* mc_rtc::log::info("Reading {}", name); */
+              sensor.read();
+            }
+            newData_ = true;
           }
-          std::this_thread::sleep_for(duration);
+          auto end_t = mc_rtc::clock::now();
+          using duration_ms = std::chrono::duration<double, std::milli>;
+          duration_ms ellapsed = end_t - start_t;
+          if(ellapsed.count() < dt * 1000)
+          {
+            mc_rtc::log::info("Sleeping for: {}", dt * 1000 - ellapsed.count());
+            std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(dt * 1000 - ellapsed.count()));
+          }
+          else
+          {
+                        mc_rtc::log::info("Too slow, not sleeping");
+
+          }
         }
         for(auto & [name, sensor] : sensors_)
         {
           sensor.close();
         }
       });
+#ifndef WIN32
+  // Lower thread priority so that it has a lesser priority than the real time
+  // thread
+  auto th_handle = th_.native_handle();
+  int policy = 0;
+  sched_param param{};
+  pthread_getschedparam(th_handle, &policy, &param);
+  param.sched_priority = 10;
+  if(pthread_setschedparam(th_handle, SCHED_RR, &param) != 0)
+  {
+    mc_rtc::log::warning("[PhidgetPressureSensorDAQ] Failed to lower thread priority. If you are running on a real-time system, "
+                         "this might cause latency to the real-time loop.");
+  }
+#endif
 }
 } // namespace pps

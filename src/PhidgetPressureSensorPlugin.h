@@ -46,6 +46,8 @@ private:
   double t_ = 0;
   bool init_ = false;
   bool required_ = true;
+  size_t iter_ = 0;
+  size_t iterRate_ = 0;
 };
 
 } // namespace mc_plugin
