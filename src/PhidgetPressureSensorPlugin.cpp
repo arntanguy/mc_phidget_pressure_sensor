@@ -34,7 +34,7 @@ void PhidgetPressureSensorPlugin::init(mc_control::MCGlobalController & controll
     }
     auto hubSerialNumber = hubConfig("serial_number");
     auto hubFrequency = hubConfig("frequency", pps::DEFAULT_FREQUENCY);
-    iterRate_ = static_cast<size_t>(1./hubFrequency * 1000);
+    iterRate_ = static_cast<size_t>(1. / hubFrequency * 1000);
     if(sensorsConfig.empty())
     {
       warn_or_throw("[PhidgetPressureSensorPlugin] No sensors in configuration for hub {}", hubName);

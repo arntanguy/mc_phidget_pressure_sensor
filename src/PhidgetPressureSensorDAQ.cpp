@@ -1,8 +1,8 @@
 #include "PhidgetPressureSensorDAQ.h"
+#include <mc_rtc/clock.h>
 #include <mc_rtc/logging.h>
 #include <chrono>
 #include <phidget22.h>
-#include <mc_rtc/clock.h>
 
 namespace pps
 {
@@ -74,8 +74,9 @@ PhidgetPressureSensorDAQ::PhidgetPressureSensorDAQ(const std::map<std::string, u
   param.sched_priority = 10;
   if(pthread_setschedparam(th_handle, SCHED_RR, &param) != 0)
   {
-    mc_rtc::log::warning("[PhidgetPressureSensorDAQ] Failed to lower thread priority. If you are running on a real-time system, "
-                         "this might cause latency to the real-time loop.");
+    mc_rtc::log::warning(
+        "[PhidgetPressureSensorDAQ] Failed to lower thread priority. If you are running on a real-time system, "
+        "this might cause latency to the real-time loop.");
   }
 #endif
 }
