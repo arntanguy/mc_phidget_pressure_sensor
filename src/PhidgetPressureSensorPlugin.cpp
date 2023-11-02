@@ -91,6 +91,7 @@ void PhidgetPressureSensorPlugin::before(mc_control::MCGlobalController & contro
           ctl.logger().addLogEntry(pressureName, this, [&data]() { return data.pressure; });
           ctl.logger().addLogEntry(fmt::format("PhidgetPressureSensor_{}_{}_current", hubName, sensorName).c_str(),
                                    this, [&data]() { return data.current; });
+          ctl.datastore().make_call("PhidgetPressureSensor::" + sensorName  + "::pressure", [&data]() { return data.pressure; });
           ctl.gui()->addElement(
               this, {"PhidgetPressureSensorPlugin", sensorName}, mc_rtc::gui::ElementsStacking::Horizontal,
               mc_rtc::gui::Button("Plot Pressure",
