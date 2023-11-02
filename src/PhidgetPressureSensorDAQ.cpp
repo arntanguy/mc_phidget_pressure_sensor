@@ -29,6 +29,7 @@ PhidgetPressureSensorDAQ::PhidgetPressureSensorDAQ(const std::map<std::string, u
   for(const auto & [name, port] : sensors)
   {
     sensors_.try_emplace(name, name, hubSerialNumber_, port, required);
+    latestData_[name] = PhidgetPressureSensorData{};
   }
 
   th_ = std::thread(
