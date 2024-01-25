@@ -26,7 +26,7 @@ void PhidgetPressureSensorPlugin::init(mc_control::MCGlobalController & controll
   for(const auto & [hubName, hubConfig] : hubs)
   {
     std::map<std::string, mc_rtc::Configuration> sensorsConfig = hubConfig("sensors", mc_rtc::Configuration{});
-    std::map<std::string, unsigned int> sensors;
+    std::map<std::string, pps::SensorConfig> sensors;
     if(!hubConfig.has("serial_number"))
     {
       warn_or_throw("[PhidgetPressureSensorPlugin] No serial_number provided for hub {}", hubName);
@@ -49,7 +49,11 @@ void PhidgetPressureSensorPlugin::init(mc_control::MCGlobalController & controll
         else
         {
           auto port = sensorConfig("port");
-          sensors.try_emplace(sensorName, port);
+          pps::SensorConfig config;
+          sensorConfig("port", config.port);
+          sensorConfig("coeff1", config.coeff1);
+          sensorConfig("coeff2", config.coeff2);
+          sensors.try_emplace(sensorName, config);
         }
       }
     }

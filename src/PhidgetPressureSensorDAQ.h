@@ -21,13 +21,24 @@ struct PhidgetPressureSensorData
   double pressure = 0;
 };
 
+struct SensorConfig
+{
+  SensorConfig() {}
+  SensorConfig(unsigned port) : port(port) {}
+  SensorConfig(unsigned port, double coeff1, double coeff2) : port(port), coeff1(coeff1), coeff2(coeff2) {}
+  unsigned port = 0;
+  // @lea set correct initial value such that they don't affect the computation
+  double coeff1 = 0;
+  double coeff2 = 0;
+};
+
 struct PhidgetPressureSensor
 {
   PhidgetPressureSensor(const std::string name,
                         unsigned int hubSerialNumber,
-                        unsigned int portNumber,
+                        const SensorConfig & sensorConfig,
                         bool required = true)
-  : name_(name), hubSerialNumber_(hubSerialNumber), portNumber_(portNumber), required_(required)
+  : name_(name), hubSerialNumber_(hubSerialNumber), sensorConfig_(sensorConfig), required_(required)
   {
   }
 
@@ -57,10 +68,11 @@ struct PhidgetPressureSensor
 
   bool init()
   {
-    mc_rtc::log::info("Init with hub serial {} and port {}", hubSerialNumber_, portNumber_);
+    auto portNumber = sensorConfig_.port;
+    mc_rtc::log::info("Init with hub serial {} and port {}", hubSerialNumber_, portNumber);
     return SAFECALL(PhidgetCurrentInput_create, &sensor)
            && SAFECALL(Phidget_setDeviceSerialNumber, (PhidgetHandle)sensor, hubSerialNumber_)
-           && SAFECALL(Phidget_setHubPort, (PhidgetHandle)sensor, portNumber_)
+           && SAFECALL(Phidget_setHubPort, (PhidgetHandle)sensor, portNumber)
            && SAFECALL(Phidget_openWaitForAttachment, (PhidgetHandle)sensor, 1000);
   }
 
@@ -75,6 +87,7 @@ struct PhidgetPressureSensor
     bool success = SAFECALL(PhidgetCurrentInput_getCurrent, sensor, &data_.current);
     if(success)
     {
+      // @lea do whatever computation you want with sensorConfig.coeff1, sensorConfig.coeff2
       data_.pressure = (data_.current - 0.004) * (10.0 / 0.016);
     }
     return success;
@@ -94,14 +107,14 @@ protected:
   bool required_ = true;
   std::string name_;
   unsigned int hubSerialNumber_ = 0;
-  unsigned int portNumber_ = 0;
+  SensorConfig sensorConfig_;
   PhidgetCurrentInputHandle sensor;
   PhidgetPressureSensorData data_;
 };
 
 struct PhidgetPressureSensorDAQ
 {
-  PhidgetPressureSensorDAQ(const std::map<std::string, unsigned int> & sensors,
+  PhidgetPressureSensorDAQ(const std::map<std::string, SensorConfig> & sensors,
                            unsigned int hubSerialNumber = DEFAULT_HUB_SERIAL_NUMBER,
                            double frequency = DEFAULT_FREQUENCY,
                            bool required = true);

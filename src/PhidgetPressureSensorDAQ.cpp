@@ -18,16 +18,16 @@ void erase_if(ContainerT & items, FwdIt it, FwdIt Last, Pr Pred)
   }
 }
 
-PhidgetPressureSensorDAQ::PhidgetPressureSensorDAQ(const std::map<std::string, unsigned int> & sensors,
+PhidgetPressureSensorDAQ::PhidgetPressureSensorDAQ(const std::map<std::string, SensorConfig> & sensors,
                                                    unsigned int hubSerialNumber,
                                                    double frequency,
                                                    bool required)
 : hubSerialNumber_(hubSerialNumber), freq_(frequency)
 {
 
-  for(const auto & [name, port] : sensors)
+  for(const auto & [name, sensorConfig] : sensors)
   {
-    sensors_.try_emplace(name, name, hubSerialNumber_, port, required);
+    sensors_.try_emplace(name, name, hubSerialNumber_, sensorConfig, required);
   }
 
   th_ = std::thread(
