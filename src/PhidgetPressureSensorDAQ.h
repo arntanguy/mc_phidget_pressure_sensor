@@ -27,7 +27,7 @@ struct SensorConfig
   SensorConfig(unsigned port) : port(port) {}
   SensorConfig(unsigned port, double coeff1, double coeff2) : port(port), coeff1(coeff1), coeff2(coeff2) {}
   unsigned port = 0;
- 
+
   double coeff1 = 1;
   double coeff2 = 0;
 };
@@ -87,7 +87,7 @@ struct PhidgetPressureSensor
     bool success = SAFECALL(PhidgetCurrentInput_getCurrent, sensor, &data_.current);
     if(success)
     {
-      
+
       data_.pressure = (data_.current - 0.004) * (10.0 / 0.016);
       data_.pressure = sensorConfig_.coeff1 * data_.pressure + sensorConfig_.coeff2;
     }
